@@ -79,7 +79,9 @@ function LandingPage() {
       } else if (!isSignUp && error.code === 'auth/invalid-email') {
         setMessage('Sign-in error: Invalid email format.');
       } else {
-        setMessage(`Auth error: ${error.message}`);
+        // Remove 'firebase' from error message if present
+        const cleanedMsg = error.message.replace(/firebase/gi, '').trim();
+        setMessage(`Auth error: ${cleanedMsg}`);
       }
       console.log('Auth error:', error.message);
     }

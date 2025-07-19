@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Layouts from './layouts';
 import { useDispatch } from 'react-redux';
@@ -7,6 +6,7 @@ import { clearUser } from './store';
 import { signOut } from 'firebase/auth';
 import { auth } from './firebase';
 import { useSelector } from 'react-redux';
+import { updatePassword } from 'firebase/auth';
 
 function About() {
   const dispatch = useDispatch();
@@ -25,9 +25,64 @@ function About() {
     navigate('/');
   };
 
+  const [showChangePwd, setShowChangePwd] = React.useState(false);
+  const [newPwd, setNewPwd] = React.useState('');
+  const [changeMsg, setChangeMsg] = React.useState('');
+  const handleChangePassword = async () => {
+    setChangeMsg('');
+    if (!newPwd.trim() || newPwd.length < 6) {
+      setChangeMsg('Password must be at least 6 characters.');
+      return;
+    }
+    try {
+      await updatePassword(auth.currentUser, newPwd);
+      setChangeMsg('Password changed successfully!');
+      setTimeout(() => setShowChangePwd(false), 2000);
+    } catch (error) {
+      const cleanedMsg = error.message.replace(/firebase/gi, '').trim();
+      setChangeMsg(`Error: ${cleanedMsg}`);
+    }
+  };
+
   return (
     <Layouts>
       <div className="w-full min-h-screen bg-gradient-to-br from-purple-100 via-cyan-50 to-pink-100 py-10 px-2 flex flex-col items-center">
+        {/* Top Left Buttons */}
+        {/* <div className="w-full flex items-center justify-start mb-4">
+          <button onClick={handleLogout} className="bg-gradient-to-r from-teal-500 via-emerald-400 to-teal-700 hover:from-teal-600 hover:to-emerald-600 text-white font-semibold py-2 px-6 rounded-xl shadow-lg transition-all duration-200 mr-2">Logout</button>
+          <button onClick={() => setShowChangePwd(true)} className="bg-gradient-to-r from-green-400 via-green-500 to-green-600 text-white font-semibold py-2 px-6 rounded-xl shadow-lg transition-all duration-200">Change Password</button>
+        </div> */}
+        {/* Change Password Modal */}
+        {showChangePwd && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-xs flex flex-col items-center">
+              <h2 className="text-base font-bold mb-2 text-green-600">Change Password</h2>
+              <input
+                className="border mb-2 rounded text-center placeholder:text-center w-full text-sm"
+                type="password"
+                placeholder="Enter new password"
+                value={newPwd}
+                onChange={e => setNewPwd(e.target.value)}
+                autoFocus
+              />
+              <button
+                className="bg-green-500 hover:bg-green-600 text-white font-medium py-1 px-4 rounded mb-2 text-xs border border-green-300"
+                onClick={handleChangePassword}
+              >
+                Change Password
+              </button>
+              <button
+                className="text-xs text-gray-500 underline hover:text-green-500 mb-2"
+                onClick={() => setShowChangePwd(false)}
+              >
+                Cancel
+              </button>
+              {changeMsg && (
+                <div className={`text-xs mt-2 ${changeMsg.toLowerCase().includes('error') ? 'text-red-500' : 'text-green-500'}`}>{changeMsg}</div>
+              )}
+            </div>
+          </div>
+        )}
         {/* Group 1: Header, About, AI Research */}
         <div className="max-w-5xl w-full mb-8 p-6 rounded-2xl shadow-2xl bg-gradient-to-br from-pink-200 via-white to-purple-100 border border-purple-300">
           <h1 className="text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-pink-400 to-cyan-600 mb-6 drop-shadow-lg">Welcome to Micro_code</h1>
@@ -246,9 +301,10 @@ function About() {
               <span className="text-gray-700">contact@microcode.com</span>
             </div>
           </section>
-          {/* Logout Button */}
-          <div className="flex justify-center mt-6">
-            <button onClick={handleLogout} className="bg-gradient-to-r from-teal-500 via-emerald-400 to-teal-700 hover:from-teal-600 hover:to-emerald-600 text-white font-semibold py-2 px-8 rounded-xl shadow-lg transition-all duration-200">Logout</button>
+          {/* Buttons below content */}
+          <div className="w-full flex items-center justify-center mt-8 mb-4">
+            <button onClick={handleLogout} className="bg-gradient-to-r from-gray-700 via-gray-500 to-gray-700 hover:from-gray-800 hover:to-gray-600 text-white font-medium py-1 px-4 rounded shadow-sm transition-all duration-150 mr-2 text-xs border border-gray-300">Sign Out</button>
+            <button onClick={() => setShowChangePwd(true)} className="bg-gradient-to-r from-green-500 via-green-400 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-1 px-4 rounded shadow-sm transition-all duration-150 text-xs border border-green-300">Change Password</button>
           </div>
         </div>
       </div>
